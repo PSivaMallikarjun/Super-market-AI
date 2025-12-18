@@ -1,0 +1,8 @@
+{
+  "name": "Supermarket AI",
+  "description": "An AI-powered management platform for supermarkets optimizing inventory, security, customer service, and marketing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
