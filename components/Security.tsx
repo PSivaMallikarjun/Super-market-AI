@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, ShieldAlert, CheckCircle, AlertTriangle, Upload, Eye } from 'lucide-react';
+import { Camera, ShieldAlert, CheckCircle, AlertTriangle, Upload, Eye, Sparkles } from 'lucide-react'; // Added Sparkles
 import { analyzeSecurityFeed } from '../services/geminiService';
 
 const Security: React.FC = () => {
@@ -95,8 +95,10 @@ const Security: React.FC = () => {
               ) : (
                 <>
                   <Upload size={32} className="text-slate-400 mb-2" />
-                  <p className="text-sm font-medium text-slate-600">Click to upload frame</p>
-                  <p className="text-xs text-slate-400 mt-1">JPG, PNG supported</p>
+                  <p className="text-sm font-medium text-slate-600">Upload frame to analyze</p>
+                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                    <Sparkles size={12} className="text-indigo-400" /> AI analysis begins automatically
+                  </p>
                 </>
               )}
             </div>

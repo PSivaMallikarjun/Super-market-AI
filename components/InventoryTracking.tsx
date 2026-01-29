@@ -13,7 +13,7 @@ const InventoryTracking: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [report, setReport] = useState<string | null>(null);
   const [detections, setDetections] = useState<RecognizedProduct[]>([]);
-  const [confidence, setConfidence] = useState<number | null>(null);
+  const [confidence, setConfidence] = useState<number | null>(null); // Represents overall detection confidence
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,6 +23,8 @@ const InventoryTracking: React.FC = () => {
       reader.onload = (ev) => {
         setSelectedImage(ev.target?.result as string);
         setReport(null);
+        setDetections([]); // Clear previous detections
+        setConfidence(null); // Clear previous confidence
         analyzeInventory(file);
       };
       reader.readAsDataURL(file);
@@ -32,57 +34,27 @@ const InventoryTracking: React.FC = () => {
   const analyzeInventory = async (file: File) => {
     setIsAnalyzing(true);
     try {
-      const result = await trackInventoryVisually(file);
-      setReport(result);
-      
-      // Parse detections from AI response (simulated for UI)
-      const mockDetections: RecognizedProduct[] = [];
-      const resLower = result.toLowerCase();
+      const result = await trackInventoryVisually(file); // This now returns RecognizedProduct[]
+      setDetections(result); // Directly set the parsed array
 
-      // Simple keyword detection to simulate structured data extraction
-      if (resLower.includes('cola') || resLower.includes('soda')) {
-        mockDetections.push({
-          id: 'det-1',
-          brand: 'Coca-Cola 500ml',
-          sku: 'SKU-882193',
-          category: 'Beverages',
-          count: 24,
-          confidence: 0.98
-        });
-      }
-      if (resLower.includes('chip') || resLower.includes('snack')) {
-        mockDetections.push({
-          id: 'det-2',
-          brand: 'Lays Classic XL',
-          sku: 'SKU-112004',
-          category: 'Snacks',
-          count: 12,
-          confidence: 0.94
-        });
-      }
-      if (resLower.includes('milk') || resLower.includes('dairy')) {
-        mockDetections.push({
-          id: 'det-3',
-          brand: 'Fresh Valley Whole Milk',
-          sku: 'SKU-009211',
-          category: 'Dairy',
-          count: 8,
-          confidence: 0.89
-        });
-      }
-      
-      setDetections(mockDetections);
-      
-      // Extract confidence score if provided
-      const confMatch = result.match(/(\d+)%/);
-      if (confMatch) {
-        setConfidence(parseInt(confMatch[1]));
+      // Calculate overall confidence and generate a summary report
+      if (result.length > 0) {
+        const totalConfidence = result.reduce((sum, item) => sum + item.confidence, 0);
+        const avgConfidence = (totalConfidence / result.length) * 100;
+        setConfidence(parseFloat(avgConfidence.toFixed(1))); // Set rounded average confidence
+
+        const summary = result.map(d => `${d.count}x ${d.brand}`).join(', ');
+        setReport(`Detected ${result.length} unique SKUs: ${summary}. Overall visual analysis confidence: ${avgConfidence.toFixed(1)}%.`);
       } else {
-        setConfidence(Math.floor(Math.random() * 10) + 85);
+        setConfidence(0);
+        setReport('No distinct products recognized in this visual feed. Try a different image or angle.');
       }
 
     } catch (error) {
-      console.error(error);
+      console.error("Error analyzing inventory:", error);
+      setReport("Error analyzing inventory. Could not recognize products or process AI response. Please try again.");
+      setDetections([]); // Clear detections on error
+      setConfidence(0); // Set confidence to 0 on error
     } finally {
       setIsAnalyzing(false);
     }
@@ -168,15 +140,27 @@ const InventoryTracking: React.FC = () => {
                   </div>
                 )}
                 
-                {/* Simulated Recognition Boxes */}
+                {/* Visual Bounding Boxes for Detections */}
                 {!isAnalyzing && detections.length > 0 && (
                   <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-[15%] left-[10%] w-[150px] h-[100px] border-2 border-indigo-400 bg-indigo-400/10 rounded flex flex-col justify-end p-1">
-                       <span className="text-[8px] bg-indigo-600 text-white font-bold w-fit px-1 rounded">BEVERAGE_DETECTION</span>
-                    </div>
-                    <div className="absolute bottom-[20%] right-[15%] w-[120px] h-[150px] border-2 border-emerald-400 bg-emerald-400/10 rounded flex flex-col justify-end p-1">
-                       <span className="text-[8px] bg-emerald-600 text-white font-bold w-fit px-1 rounded">SNACK_SKU_RECOGNIZED</span>
-                    </div>
+                    {detections.map((item, idx) => (
+                      <div 
+                        key={item.id} 
+                        className="absolute border-2 border-indigo-400 bg-indigo-400/10 rounded flex flex-col justify-end p-1"
+                        // These styles would ideally be dynamic based on actual bounding box data from Gemini,
+                        // but for simulation, we can place them somewhat randomly or in a pattern.
+                        // For now, I'll keep the two static boxes to avoid overly complex styling logic.
+                        style={{
+                          top: `${15 + idx * 10}%`, 
+                          left: `${10 + idx * 5}%`, 
+                          width: `${150 - idx * 10}px`, 
+                          height: `${100 + idx * 10}px`,
+                          opacity: item.confidence // Adjust opacity based on confidence
+                        }}
+                      >
+                         <span className="text-[8px] bg-indigo-600 text-white font-bold w-fit px-1 rounded">{item.brand} ({item.count})</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

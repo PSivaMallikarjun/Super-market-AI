@@ -1,68 +1,8 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { RecognizedProduct } from "../types"; // Import RecognizedProduct type
 
 const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
-
-// --- Audio Decoding Helpers (Removed as generateAppTourAudio is removed) ---
-// export function decodeBase64(base64: string) {
-//   const binaryString = atob(base64);
-//   const len = binaryString.length;
-//   const bytes = new Uint8Array(len);
-//   for (let i = 0; i < len; i++) {
-//     bytes[i] = binaryString.charCodeAt(i);
-//   }
-//   return bytes;
-// }
-
-// export async function decodeAudioData(
-//   data: Uint8Array,
-//   ctx: AudioContext,
-//   sampleRate: number,
-//   numChannels: number,
-// ): Promise<AudioBuffer> {
-//   const dataInt16 = new Int16Array(data.buffer);
-//   const frameCount = dataInt16.length / numChannels;
-//   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
-//   for (let channel = 0; channel < numChannels; channel++) {
-//     const channelData = buffer.getChannelData(channel);
-//     for (let i = 0; i < frameCount; i++) {
-//       channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-//     }
-//   }
-//   return buffer;
-// }
-
-// --- English Only Tour Audio Generation (Strictly 2.5 Minutes) (Removed as AppDemo is removed) ---
-// export const generateAppTourAudio = async () => {
-//   try {
-//     const prompt = `Act as the Lead AI Strategist for "Supermarket AI". 
-//     Deliver a 2.5-minute executive briefing (approx 380 words) in English.
-//     ... (rest of the prompt) ...
-//     The tone must be authoritative, professional, and strategic. Use the full 150 seconds for a deep explanation.`;
-
-//     const response = await ai.models.generateContent({
-//       model: "gemini-2.5-flash-preview-tts",
-//       contents: [{ parts: [{ text: prompt }] }],
-//       config: {
-//         responseModalities: [Modality.AUDIO],
-//         speechConfig: {
-//           voiceConfig: {
-//             prebuiltVoiceConfig: { voiceName: 'Kore' }, // Professional narrator voice
-//           },
-//         },
-//       },
-//     });
-
-//     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-//     if (!base64Audio) throw new Error("No audio data returned");
-    
-//     return base64Audio;
-//   } catch (error) {
-//     console.error("Tour Audio Generation Error:", error);
-//     throw error;
-//   }
-// };
 
 // --- Existing Helpers ---
 export const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
@@ -252,15 +192,51 @@ export const monitorShelfStock = async (file: File) => {
   } catch (error) { console.error(error); throw error; }
 };
 
-export const trackInventoryVisually = async (file: File) => {
+export const trackInventoryVisually = async (file: File): Promise<RecognizedProduct[]> => {
   try {
     const imagePart = await fileToGenerativePart(file);
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: { parts: [imagePart, { text: "Visually track inventory SKUs." }] }
+      contents: { 
+        parts: [
+          imagePart, 
+          { text: "Visually track inventory SKUs on this shelf. For each distinct product, identify its brand, category, and count. Generate a mock SKU if not explicit. Provide a confidence score for each detection (0.0 to 1.0). Return the output as a JSON array of objects with 'brand', 'sku', 'category', 'count', and 'confidence' properties." }
+        ] 
+      },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING, description: 'Unique identifier for the recognized product.' },
+              brand: { type: Type.STRING, description: 'The brand and name of the product.' },
+              sku: { type: Type.STRING, description: 'A unique SKU identifier for the product.' },
+              category: { type: Type.STRING, description: 'The product category (e.g., Beverages, Snacks, Dairy).' },
+              count: { type: Type.INTEGER, description: 'The visible count of the product.' },
+              confidence: { type: Type.NUMBER, description: 'Confidence score of detection (0.0 - 1.0).' },
+            },
+            required: ["id", "brand", "sku", "category", "count", "confidence"]
+          }
+        }
+      }
     });
-    return response.text;
-  } catch (error) { console.error(error); throw error; }
+    const jsonStr = response.text?.trim();
+    if (!jsonStr) {
+      throw new Error("No JSON response from AI for inventory tracking.");
+    }
+    // Attempt to parse JSON, handle cases where it might be wrapped in markdown
+    const cleanedJsonStr = jsonStr.startsWith('```json') && jsonStr.endsWith('```') 
+                           ? jsonStr.substring(7, jsonStr.length - 3) 
+                           : jsonStr;
+    const jsonResult = JSON.parse(cleanedJsonStr);
+    return jsonResult as RecognizedProduct[];
+  } catch (error) {
+    console.error("Error tracking inventory visually:", error);
+    // Return empty array on error to prevent crashing and allow UI to show "No detections"
+    return []; 
+  }
 };
 
 export const detectPricingIssues = async (file: File) => {

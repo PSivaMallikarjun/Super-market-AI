@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Info, LayoutDashboard, ShoppingCart, LayoutGrid, ShieldAlert,
@@ -11,12 +12,20 @@ interface AppTourProps {
   setCurrentView: (view: View) => void;
 }
 
-const TOUR_STEPS = [
+// Define an interface for a single tour step to ensure type consistency
+interface TourStep {
+  title: string;
+  icon: React.ReactNode;
+  targetView: View;
+  component: (handleNext?: () => void) => React.ReactNode; // Make handleNext optional for all components
+}
+
+const TOUR_STEPS: TourStep[] = [
   {
     title: "Welcome to SupermarketAI",
     icon: <Lightbulb size={48} className="text-indigo-600" />,
     targetView: View.ABOUT, // Stay on the tour component itself for intro
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-gradient-to-br from-indigo-50 to-blue-50 relative overflow-hidden rounded-xl">
         <img 
           src="https://picsum.photos/id/1015/800/600" 
@@ -40,7 +49,7 @@ const TOUR_STEPS = [
     title: "SupermarketAI's Core AI Features",
     icon: <Brain size={48} className="text-purple-600" />,
     targetView: View.ABOUT, // Stay on the tour component itself for intro
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-100 flex flex-col justify-between">
         <img 
           src="https://picsum.photos/id/488/1200/800" 
@@ -110,7 +119,7 @@ const TOUR_STEPS = [
     title: "Feature Deep-dive: Inventory & Forecast",
     icon: <ShoppingCart size={48} className="text-blue-600" />,
     targetView: View.INVENTORY,
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-100">
         <img 
           src="https://picsum.photos/id/1047/1200/800" 
@@ -146,7 +155,7 @@ const TOUR_STEPS = [
     title: "Feature Deep-dive: Shelf Monitoring",
     icon: <LayoutGrid size={48} className="text-emerald-600" />,
     targetView: View.SHELF_MONITORING,
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg border border-emerald-100">
         <img 
           src="https://picsum.photos/id/1050/1200/800" 
@@ -182,7 +191,7 @@ const TOUR_STEPS = [
     title: "Feature Deep-dive: Theft Detection",
     icon: <ShieldAlert size={48} className="text-rose-600" />,
     targetView: View.THEFT_DETECTION,
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-6 bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg border border-rose-100">
         <img 
           src="https://picsum.photos/id/1049/1200/800" 
@@ -218,7 +227,7 @@ const TOUR_STEPS = [
     title: "Feature Deep-dive: Pricing Detection",
     icon: <Tag size={48} className="text-purple-600" />,
     targetView: View.PRICING_DETECTION,
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-100">
         <img 
           src="https://picsum.photos/id/1084/1200/800" 
@@ -254,7 +263,7 @@ const TOUR_STEPS = [
     title: "Feature Deep-dive: Spoilage Detection",
     icon: <Biohazard size={48} className="text-lime-600" />,
     targetView: View.SPOILAGE_DETECTION,
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-6 bg-gradient-to-br from-lime-50 to-lime-100 rounded-lg border border-lime-100">
         <img 
           src="https://picsum.photos/id/1080/1200/800" 
@@ -290,7 +299,7 @@ const TOUR_STEPS = [
     title: "Google AI & Cloud Stack",
     icon: <Cloud size={48} className="text-indigo-600" />,
     targetView: View.ABOUT, // Stay on the tour component itself for tech explanation
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature
       <div className="h-full relative overflow-hidden p-8 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-100 flex flex-col items-center text-center">
         <img 
           src="https://picsum.photos/id/479/1200/800" 
@@ -336,7 +345,7 @@ const TOUR_STEPS = [
     title: "Feature Summary & Dashboard Access", // Updated title
     icon: <LayoutDashboard size={48} className="text-indigo-600" />,
     targetView: View.DASHBOARD, // Final step, navigate to Dashboard
-    component: () => (
+    component: (handleNext?: () => void) => ( // Updated signature to accept handleNext (now optional)
       <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-gradient-to-br from-indigo-50 to-purple-50 relative overflow-hidden rounded-xl">
         <img 
           src="https://picsum.photos/id/1069/800/600" 
@@ -357,6 +366,12 @@ const TOUR_STEPS = [
             <Sprout size={32} className="text-yellow-500" />
             <TrendingUp size={32} className="text-blue-500" />
           </div>
+          <button 
+            onClick={handleNext} // Use the passed handleNext
+            className="mt-8 px-8 py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors flex items-center gap-3"
+          >
+            <PlayCircle size={24} /> Go to Dashboard
+          </button>
         </div>
       </div>
     )
@@ -391,15 +406,24 @@ const AppTour: React.FC<AppTourProps> = ({ setCurrentView }) => {
   };
 
   // Determine the displayed step count
-  const displayStep = currentStepIndex < 2 ? 1 : 2;
-  const totalDisplaySteps = 2; // Always show 'of 2'
+  // The first two "intro" steps don't count towards the feature deep-dive count
+  const featureDeepDiveSteps = TOUR_STEPS.slice(2, TOUR_STEPS.length - 1);
+  const totalFeatureSteps = featureDeepDiveSteps.length;
+  let displayStepNumber = 0;
+  if (currentStepIndex >= 2 && currentStepIndex < TOUR_STEPS.length - 1) {
+    displayStepNumber = currentStepIndex - 1; // Adjust for the intro steps
+  }
+
 
   return (
     <div className="h-full flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       {/* Tour Content Area */}
       <div className="flex-1 flex flex-col justify-center items-center bg-slate-50/50 p-6">
         <div className="max-w-4xl w-full h-full p-8 bg-white rounded-xl shadow-lg border border-slate-100 flex items-center justify-center">
-          {currentStep.component()}
+          {/* Render component, passing handleNext if it's the last step, otherwise pass undefined */}
+          {currentStepIndex === TOUR_STEPS.length - 1 
+            ? currentStep.component(handleNext) 
+            : currentStep.component(undefined)}
         </div>
       </div>
 
@@ -414,7 +438,9 @@ const AppTour: React.FC<AppTourProps> = ({ setCurrentView }) => {
             Previous
           </button>
           <div className="text-sm font-medium text-slate-500">
-            Step {displayStep} of {totalDisplaySteps}
+            {currentStepIndex < 2 || currentStepIndex === TOUR_STEPS.length - 1 ? 
+              `Step ${currentStepIndex + 1} of ${TOUR_STEPS.length}` : 
+              `Feature ${displayStepNumber} of ${totalFeatureSteps}`}
           </div>
           <button
             onClick={handleNext}

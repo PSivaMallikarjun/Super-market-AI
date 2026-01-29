@@ -103,6 +103,19 @@ const PlanogramCompliance: React.FC = () => {
         </div>
       </div>
 
+      <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <h2 className="font-semibold text-slate-800">Planogram Management</h2>
+          {/* One-line explanation of planogram */}
+          <p className="text-xs text-slate-500 max-w-sm ml-4">
+            A planogram is a visual blueprint that dictates the optimal placement of every product on a retail shelf to maximize sales, streamline inventory, and ensure brand consistency.
+          </p>
+        </div>
+        {/* The rest of the content will go here within the flex-col */}
+        
+      </div>
+
+
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
         
         {/* Upload & Compare Workbench */}
@@ -129,6 +142,9 @@ const PlanogramCompliance: React.FC = () => {
                 )}
                 <input type="file" ref={refInputRef} className="hidden" accept="image/*" onChange={handleRefUpload} />
               </div>
+              <p className="text-center text-[10px] text-slate-500 font-medium pb-2">
+                Upload both images, then click 'Analyze Planogram Compliance' below.
+              </p>
             </div>
 
             {/* Actual Upload */}
@@ -151,6 +167,9 @@ const PlanogramCompliance: React.FC = () => {
                 )}
                 <input type="file" ref={actualInputRef} className="hidden" accept="image/*,video/*" onChange={handleActualUpload} />
               </div>
+              <p className="text-center text-[10px] text-slate-500 font-medium pb-2">
+                Upload both images, then click 'Analyze Planogram Compliance' below.
+              </p>
             </div>
           </div>
 
