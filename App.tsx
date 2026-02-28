@@ -4,7 +4,7 @@ import {
   ShieldCheck, Megaphone, Menu, X, LayoutGrid, 
   ClipboardCheck, Tag, Box, Hourglass, Users,
   Ruler, Biohazard, MonitorPlay, ShieldAlert,
-  PlayCircle, Info, Lightbulb, Star
+  PlayCircle, Info, Lightbulb, Star, Sparkles
 } from 'lucide-react';
 import { View } from './types';
 import Dashboard from './components/Dashboard';
@@ -22,7 +22,8 @@ import ShelfSpaceOptimisation from './components/ShelfSpaceOptimisation';
 import SpoilageDetection from './components/SpoilageDetection';
 import PromoMonitoring from './components/PromoMonitoring';
 import TheftDetection from './components/TheftDetection';
-import AppTour from './components/AppTour'; // Changed from 'About' to 'AppTour'
+import AppTour from './components/AppTour';
+import StorefrontDesigner from './components/StorefrontDesigner';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.ABOUT); // Changed initial view to View.ABOUT
@@ -78,6 +79,7 @@ const App: React.FC = () => {
             <NavItem view={View.DASHBOARD} icon={LayoutDashboard} label="Dashboard" color="indigo" />
             {/* Changed from View.DEMO to View.ABOUT, now for App Tour */}
             <NavItem view={View.ABOUT} icon={Info} label="App Tour & Features" color="indigo" /> 
+            <NavItem view={View.STOREFRONT_DESIGNER} icon={Sparkles} label="Storefront Designer" color="purple" />
             
             <div className="px-3 mt-6 mb-2">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Ops</p>
@@ -156,6 +158,7 @@ const App: React.FC = () => {
                   {currentView === View.SPOILAGE_DETECTION && 'Quality & Damage Control'}
                   {currentView === View.PROMO_MONITORING && 'Promotional Execution Monitor'}
                   {currentView === View.THEFT_DETECTION && 'Loss Prevention AI'}
+                  {currentView === View.STOREFRONT_DESIGNER && 'AI Storefront Designer'}
                 </h2>
                 <p className="text-slate-500 font-medium text-lg mt-1">
                   {currentView === View.DASHBOARD && 'Real-time performance analytics and store health.'}
@@ -173,6 +176,7 @@ const App: React.FC = () => {
                   {currentView === View.SPOILAGE_DETECTION && 'Identify spills, damaged boxes, and expired produce.'}
                   {currentView === View.PROMO_MONITORING && 'Audit the setup and branding of your end-caps.'}
                   {currentView === View.THEFT_DETECTION && 'Identify suspicious patterns before loss occurs.'}
+                  {currentView === View.STOREFRONT_DESIGNER && 'Visually redesign and optimize your store exterior.'}
                 </p>
               </div>
             )}
@@ -199,6 +203,7 @@ const App: React.FC = () => {
               {currentView === View.SPOILAGE_DETECTION && <SpoilageDetection />}
               {currentView === View.PROMO_MONITORING && <PromoMonitoring />}
               {currentView === View.THEFT_DETECTION && <TheftDetection />}
+              {currentView === View.STOREFRONT_DESIGNER && <StorefrontDesigner />}
               {/* Render AppTour here, passing setCurrentView */}
               {currentView === View.ABOUT && <AppTour setCurrentView={setCurrentView} />}
             </div>
