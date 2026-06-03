@@ -116,13 +116,4 @@ Contributions are welcome. Ideas:
 
 ## License
 
-Add a LICENSE file (e.g., MIT) in the repository root if you want to allow reuse.
-
----
-
-If you'd like, I can also:
-- Add explicit tech stack and file-structure documentation pulled from this repo.
-- Create example API payloads/endpoints based on the backend code.
-- Open a PR with more granular README sections for modules present in the project.
-
-Tell me which you'd like next and I'll update the README accordingly.
+MIT
