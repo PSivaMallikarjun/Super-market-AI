@@ -1,0 +1,257 @@
+---
+generate_full_store_dataset:
+  description: |-
+    Generate a comprehensive, realistic mock operational dataset for {store_name} that all downstream agents will consume via task context. Since no live connectors are available, you MUST fabricate realistic sample data entirely from your own knowledge — do NOT output N/A or placeholders. Output the full dataset as structured JSON inline in your response.
+
+    The dataset MUST include:
+    - **products**: 30+ SKUs with product_id, name, aisle (1–10), category, price, stock_qty, planogram_position, expiry_date, promotion_flag
+    - **sales_history**: 30 days of daily_units_sold per product_id
+    - **footfall**: hourly zone traffic for 7 days (zones: Entrance, Produce, Bakery, Dairy, Frozen, Grocery, Snacks, Beverages, Household, Checkout)
+    - **shelf_metadata**: per aisle — gap_pct, misplaced_items, low_stock_zones, shelf_health_score
+    - **security_events**: 20+ incidents with event_id, type (theft_alert/cctv_flag/access_event/inventory_discrepancy), timestamp, zone, product_id, estimated_loss
+    - **promotions**: active promos with promo_id, name, products, discount_pct, uptake_rate, basket_uplift, start_date, end_date
+    - **price_tags**: per product — shelf_tag_price vs system_price (include 5+ mismatches)
+    - **system_health**: per subsystem — status, latency_ms, last_check
+
+    Print a summary of record counts at the end.
+  expected_output: A complete JSON dataset printed inline containing all 8 data sections
+    (products, sales_history, footfall, shelf_metadata, security_events, promotions,
+    price_tags, system_health) with realistic, fully populated values — no N/A, no
+    placeholders. Followed by a record-count summary.
+  agent: supermarket_live_data_integration_architect
+generate_dashboard_app_tour:
+  description: |-
+    Using the store dataset provided in your task context for {store_name}, compute and present the main hub dashboard KPIs and an app tour. Extract data directly from the context — do NOT try to read any files.
+
+    Dashboard must include:
+    - Daily revenue (sum today's sales × price per product)
+    - Average basket size
+    - Top 3 product categories by sales volume
+    - Total footfall count for peak day
+    - OOS rate (% of SKUs with stock_qty = 0)
+    - Overall compliance score (derive from shelf_health_score average)
+    - Active alerts count (security_events count)
+
+    After KPIs, include "App Tour & Features" describing all SupermarketAI modules: Main Hub, Storefront Designer, Inventory Ops (Inventory & Forecast, OOS Prediction, Visual Tracking, Shelf Monitoring), Compliance & Quality (Planogram, Price Audit, Shelf Space, Spoilage & Damage), Security & Strategy (Customer Behaviour, Promo Monitoring, Theft & Shrinkage, Customer Support, Security & Vision, Marketing Generator), and System Health.
+  expected_output: A fully populated markdown KPI dashboard with real computed numbers
+    from the context data, an App Tour section, and a printed KPI summary table. No
+    N/A values.
+  agent: supermarket_analytics_dashboard_specialist
+  context:
+  - generate_full_store_dataset
+design_storefront_layout:
+  description: |-
+    Design a detailed mock storefront layout for {store_name} using the mock store product and aisle data. The layout must include:
+    - A text-based aisle grid map (rows and columns representing store zones)
+    - Entrance and exit zone placement with customer flow direction arrows (described in text)
+    - High-traffic zone identification (produce, bakery, dairy)
+    - End-cap product placements per aisle with product recommendations
+    - Promotional display zones (feature tables, seasonal end-caps, checkout lane impulse zones)
+    - Entrance feature area recommendations (seasonal/promotional items)
+    - Staff zone and checkout lane layout
+
+    Use best practices in retail store layout design (e.g., racetrack layout, decompression zone, power aisle). Research current supermarket layout trends if needed.
+
+    Save the full plan as `storefront_design.md`.
+  expected_output: A markdown file `storefront_design.md` with a text-based aisle
+    grid map, zone descriptions, end-cap placements, promotional display areas, entrance/exit
+    flow recommendations, and retail design rationale.
+  agent: digital_storefront_layout_specialist
+  context:
+  - generate_full_store_dataset
+inventory_analysis_demand_forecast:
+  description: |-
+    Using the store dataset in your task context for {store_name}, perform a full inventory analysis and 14-day demand forecast. Extract data directly from context — do NOT try to read any files.
+
+    - Summarize current stock_qty by product and category from the products data
+    - Calculate sales velocity (avg daily_units_sold over 30 days) per product from sales_history
+    - Forecast 14-day demand = velocity × 14
+    - Flag products where stock_qty < (velocity × 7) as restock-required
+    - List top 10 fastest-moving and top 10 slowest-moving products
+    - Category-level stock health summary
+  expected_output: A markdown inventory report with populated stock tables, sales
+    velocity per product, 14-day forecasts, flagged low-stock items, and category
+    health summary. All values computed from context data — no N/A.
+  agent: inventory_management_demand_forecasting_specialist
+  context:
+  - generate_full_store_dataset
+live_visual_shelf_tracking_monitoring:
+  description: |-
+    Using the shelf_metadata from the store dataset in your task context for {store_name}, produce a real-time shelf monitoring report. Extract data directly from context — do NOT try to read any files or attempt to connect to cameras.
+
+    For each aisle in shelf_metadata:
+    - Report gap_pct: flag Critical if > 15%, Warning if 5–15%, OK if < 5%
+    - Report misplaced_items count
+    - Report low_stock_zones
+    - Assign severity per aisle
+    - Compute overall shelf health score (average of shelf_health_score across aisles)
+    - Generate a prioritized staff dispatch list for Critical aisles
+  expected_output: A markdown shelf monitoring report with a populated aisle-by-aisle
+    alert table (aisle, gap%, misplaced items, low-stock zones, severity), an overall
+    shelf health score, and a staff dispatch priority list. All values from context
+    data — no N/A.
+  agent: computer_vision_shelf_cctv_operations_analyst
+  context:
+  - generate_full_store_dataset
+customer_behaviour_analysis:
+  description: |-
+    Using the footfall and sales data in your task context for {store_name}, produce a customer behaviour analysis. Extract data directly from context — do NOT try to read any files.
+
+    - Identify peak footfall hours and days from footfall data
+    - Rank zones by average dwell time; flag zones > 3min as high-dwell
+    - Generate a text-based ASCII heatmap of zone traffic intensity
+    - Calculate average basket size from sales_history (total units / estimated transactions)
+    - Identify top 5 most common category combinations from sales patterns
+    - Calculate zone conversion rates (purchasing zones vs total footfall)
+    - Provide 3 actionable recommendations based on the data
+  expected_output: A markdown customer behaviour report with peak hour tables, dwell
+    rankings, ASCII heatmap, basket insights, zone conversion rates, journey patterns,
+    and 3 recommendations. All computed from context data — no N/A.
+  agent: retail_customer_behaviour_footfall_analyst
+  context:
+  - generate_full_store_dataset
+system_health_check:
+  description: |-
+    Using the system_health data in your task context for {store_name}, produce a system health report. Extract data directly from context — do NOT try to read any files.
+
+    For each of the 8 subsystems in system_health data (Dashboard Service, Inventory API, OCR/Vision Pipeline, Compliance Module, Security Feeds, Promo Engine, Customer Support Bot, Database):
+    - Report status (✅ Healthy / ⚠️ Degraded / ❌ Down) from the status field
+    - Report latency_ms from context
+    - Report last_check timestamp from context
+    - List any alerts
+    - Provide recommended action if not Healthy
+
+    Print a console status table. Compute an overall platform health score = (healthy_count / total_subsystems) × 100.
+  expected_output: A markdown system health report with a fully populated subsystem
+    table (status, latency, last check, alerts, action) derived from context data.
+    An overall platform health score. A printed status table. No N/A values.
+  agent: supermarketai_system_health_integration_monitor
+  context:
+  - generate_full_store_dataset
+predict_out_of_stock_events:
+  description: |-
+    Using the inventory analysis from your task context for {store_name}, predict OOS risk for every product. Extract data directly from context — do NOT try to read any files.
+
+    - Use stock_qty and sales_velocity from context
+    - hours_to_stockout = (stock_qty / velocity) × 24
+    - High risk: < 48h | Medium: 48–72h | Low: > 72h
+    - Recommended reorder qty = (velocity × 14) - stock_qty for High/Medium items
+    - Sort table by urgency (lowest hours first)
+    - Print High-risk product alert list
+  expected_output: A markdown OOS risk table with every product scored (stock, velocity,
+    hours-to-stockout, risk level, reorder qty), plus a printed High-risk alert list.
+    All real computed values — no N/A.
+  agent: out_of_stock_prediction_specialist
+  context:
+  - inventory_analysis_demand_forecast
+theft_shrinkage_security_analysis:
+  description: |-
+    Using the security_events and inventory data in your task context for {store_name}, produce a loss prevention and security report. Extract data directly from context — do NOT try to read any files.
+
+    - Calculate total shrinkage value = sum of estimated_loss across all security_events
+    - Calculate shrinkage rate = total_loss / total_inventory_value × 100
+    - Identify top 3 highest-shrinkage categories by summing estimated_loss per product category
+    - Flag top 3 highest-risk zones by incident count from security_events
+    - Identify high-risk time windows by grouping events by hour and day
+    - Summarize incidents by type (theft_alert, cctv_flag, access_event, inventory_discrepancy)
+    - Identify repeat patterns: zones with 3+ incidents, product types most targeted
+    - Provide 5 specific loss prevention recommendations
+    - Include a Security & Vision section on AI camera integration benefits
+  expected_output: A markdown security report with shrinkage values by category, high-risk
+    zone and time tables, incident type summary, pattern analysis, 5 recommendations,
+    and a Security & Vision section. All computed from context data — no N/A.
+  agent: loss_prevention_security_intelligence_analyst
+  context:
+  - generate_full_store_dataset
+  - inventory_analysis_demand_forecast
+compliance_quality_full_audit:
+  description: |-
+    Using the store dataset and shelf monitoring results in your task context for {store_name}, conduct a four-pillar compliance audit. Extract data directly from context — do NOT try to read any files.
+
+    1. **Planogram Audit** — Use products planogram_position vs aisle; flag items where position doesn't match category norm. Calculate compliance %.
+    2. **Price Audit** — Compare shelf_tag_price vs system_price from price_tags data. Flag overcharges and undercharges. Calculate price accuracy % and revenue impact.
+    3. **Shelf Space Audit** — From shelf_metadata, assess space per category vs sales contribution from sales_history. Flag over/under-spaced categories.
+    4. **Spoilage & Damage Audit** — From products, identify items with expiry_date within 3 days or already expired. Calculate units affected and estimated value lost.
+
+    Produce overall compliance score = weighted average of 4 pillar scores (25% each). Print score.
+  expected_output: A markdown compliance audit with four populated sections, each
+    with findings tables and a pillar score. A weighted overall compliance score computed
+    from real data. No N/A values.
+  agent: retail_compliance_planogram_quality_auditor
+  context:
+  - generate_full_store_dataset
+  - live_visual_shelf_tracking_monitoring
+promo_monitoring_marketing_generation:
+  description: |-
+    Using the store dataset and customer behaviour results in your task context for {store_name}, monitor {promo_campaign} performance and generate new campaigns. Extract data directly from context — do NOT try to read any files.
+
+    **Part 1 — Promo Monitoring:**
+    - Find {promo_campaign} in the promotions data
+    - Report: uptake_rate, basket_uplift, discount_pct, products covered
+    - Calculate discount ROI = (basket_uplift × estimated_transactions) / discount_cost
+    - Identify best and worst performing promoted products by sales_history volume
+    - Compare performance across customer segments from footfall zones
+
+    **Part 2 — Marketing Generator:**
+    - Generate 3 new campaign ideas informed by the data insights
+    - For each: name, tagline, target segment, featured products, discount mechanic, recommended channels, expected uplift
+  expected_output: A markdown report with real promo performance metrics from context
+    data (uptake rate, ROI, basket uplift, product rankings) and 3 fully detailed
+    new campaign ideas. No N/A values.
+  agent: promotions_analyst_retail_marketing_content_creator
+  context:
+  - generate_full_store_dataset
+  - customer_behaviour_analysis
+respond_to_customer_support_query:
+  description: |-
+    Using the store dataset and promo data in your task context for {store_name}, respond conversationally to: "{shopper_query}"
+
+    Use the products data from context to find the relevant product. Your response MUST include:
+    - Friendly greeting
+    - Exact aisle number and section from products data
+    - Current price from products data
+    - Any active promotion from promotions data
+    - Ingredient/dietary notes (use your knowledge for common products)
+    - 2–3 substitute product suggestions with their aisle and price from products data
+    - Offer to help further
+  expected_output: A warm, conversational markdown customer support response referencing
+    real product locations, prices, and promotions from the context data. No generic
+    or placeholder responses.
+  agent: supermarket_ai_customer_support_specialist
+  context:
+  - generate_full_store_dataset
+  - promo_monitoring_marketing_generation
+compile_master_supermarketai_operational_report:
+  description: "Compile all SupermarketAI live module outputs into a single master
+    operational report for {store_name}. Structure the report to mirror the app navigation:\n\n**Executive
+    Summary** (top section) — Include:\n- Store name and report timestamp\n- 5 key
+    metrics (revenue, basket size, OOS rate, compliance score, shrinkage rate)\n-
+    Top 3 critical alerts across all modules\n- Top 5 recommendations across all modules\n\n**Module
+    Sections** (one per module, with a brief summary and key findings from each):\n1.
+    \U0001F3E0 Main Hub — Dashboard & KPIs\n2. \U0001F3D7️ Storefront Designer\n3.
+    \U0001F4E6 Inventory Ops — Inventory & Forecast\n4. \U0001F6A8 Inventory Ops —
+    OOS Prediction\n5. \U0001F441️ Inventory Ops — Live Visual Tracking & Shelf Monitoring
+    (CCTV)\n6. \U0001F4CB Compliance & Quality (all 4 audits)\n7. \U0001F9CD Security
+    & Strategy — Customer Behaviour\n8. \U0001F4E3 Security & Strategy — Promo Monitoring
+    & Marketing Generator\n9. \U0001F512 Security & Strategy — Theft, Shrinkage &
+    Security & Vision\n10. \U0001F3A7 Security & Strategy — Customer Support\n11.
+    \U0001F5A5️ System Health\n\nEnd with a \"Next Steps\" section listing 3 recommended
+    immediate actions for store management.\n\nSave as `supermarket_ai_master_report.md`
+    and print the executive summary."
+  expected_output: A comprehensive markdown file `supermarket_ai_master_report.md`
+    with an executive summary (key metrics, critical alerts, top recommendations),
+    11 live module summary sections, and a Next Steps section. Printed executive summary
+    in console.
+  agent: supermarketai_executive_report_compiler
+  context:
+  - generate_dashboard_app_tour
+  - design_storefront_layout
+  - inventory_analysis_demand_forecast
+  - predict_out_of_stock_events
+  - live_visual_shelf_tracking_monitoring
+  - compliance_quality_full_audit
+  - customer_behaviour_analysis
+  - promo_monitoring_marketing_generation
+  - theft_shrinkage_security_analysis
+  - respond_to_customer_support_query
+  - system_health_check

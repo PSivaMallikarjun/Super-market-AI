@@ -1,119 +1,54 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Supermarketai Crew
 
-# Run and deploy your AI Studio app
+Welcome to the Supermarketai Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
 
-This repository contains everything you need to run the Super-market-AI demo locally and understand how it integrates an LLM (via the Gemini API) to provide supermarket-specific assistant features.
+## Installation
 
-View your app in AI Studio: https://ai.studio/apps/7275f701-7c33-4bb2-bff3-fc652b25c986
+Ensure you have Python >=3.10 <3.14 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
 
-## About Super-market-AI
+First, if you haven't already, install uv:
 
-Super-market-AI is an AI-powered assistant and analytics demo built to showcase how language models can enhance shopper experiences and store operations. The app provides conversational access to supermarket data and prototype features such as:
+```bash
+pip install uv
+```
 
-- Conversational shopping assistant: ask product questions, find product locations, check promotions, and get ingredient/substitute suggestions.
-- Smart shopping lists: generate, optimize, and group shopping lists by aisle or meal plan.
-- Receipt parsing (OCR): extract items, quantities, and prices from receipt images and produce expense summaries.
-- Inventory & restock suggestions (prototype): analyze simple sales/stock data to recommend restock actions.
-- Product recommendations and cross-sell: suggest complementary items or promotions using product context.
-- Analytics dashboard (prototype): visualize spending, top categories, and receipt-derived metrics.
+Next, navigate to your project directory and install the dependencies:
 
-The demo integrates a frontend, backend routing, and optional components (OCR, vector DB, database) to illustrate a realistic pipeline for LLM-driven supermarket features.
+(Optional) Lock the dependencies and install them by using the CLI command:
+```bash
+crewai install
+```
+### Customizing
 
-> Note: Some features are prototypes and require optional services (OCR provider, vector database) to be enabled and configured.
+**Add your `OPENAI_API_KEY` into the `.env` file**
 
-## Run Locally
+- Modify `src/supermarketai/config/agents.yaml` to define your agents
+- Modify `src/supermarketai/config/tasks.yaml` to define your tasks
+- Modify `src/supermarketai/crew.py` to add your own logic, tools and specific args
+- Modify `src/supermarketai/main.py` to add custom inputs for your agents and tasks
 
-Prerequisites:
-- Node.js (v16+ recommended)
-- A Gemini API key (or compatible LLM API key)
+## Running the Project
 
-1. Install dependencies
+To kickstart your crew of AI agents and begin task execution, run this from the root folder of your project:
 
-   ```bash
-   npm install
-   ```
+```bash
+$ crewai run
+```
 
-2. Create `.env.local` in the project root and set at minimum:
+This command initializes the supermarketai Crew, assembling the agents and assigning them tasks as defined in your configuration.
 
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   ```
+This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
 
-   Optional environment variables (depends on enabled features):
+## Understanding Your Crew
 
-   - `VECTOR_DB_URL` and `VECTOR_DB_API_KEY` — for embeddings + semantic search (e.g., Pinecone, Weaviate).
-   - `OCR_API_KEY` — if using a third-party OCR provider for receipt parsing.
-   - `DATABASE_URL` — persistent DB (Postgres/SQLite) for receipts, sessions, analytics.
-   - `NODE_ENV=development|production`
+The supermarketai Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
 
-3. Start the app
+## Support
 
-   ```bash
-   npm run dev
-   ```
+For support, questions, or feedback regarding the Supermarketai Crew or crewAI.
+- Visit our [documentation](https://docs.crewai.com)
+- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
+- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
+- [Chat with our docs](https://chatg.pt/DWjSBZn)
 
-Open the URL printed in the console (usually http://localhost:3000).
-
-## High-level Architecture
-
-- Frontend: conversational UI to ask questions, upload receipts, view shopping lists and analytics.
-- Backend API: validates requests and orchestrates calls to the LLM, OCR, vector DB, and database.
-- Language Model (Gemini API): powers natural-language understanding and generation tasks.
-- Optional components: OCR for receipt parsing, vector DB for embedding search, and a DB for persistence.
-
-Typical flows:
-- Query flow: user asks a question → backend fetches relevant context (product catalog/embeddings) → backend calls Gemini with a prompt → Gemini returns an answer → frontend displays it.
-- Receipt flow: user uploads a receipt image → backend calls OCR → structured items saved to DB → backend summarizes with Gemini → frontend displays parsed receipt and category breakdown.
-
-## Configuration & Extensibility
-
-To make the demo more production-like, consider:
-
-- Product catalog: import a CSV/DB of items (name, category, aisle, price) for accurate lookups.
-- Embeddings: compute embeddings for product descriptions and receipts to enable semantic search and similarity-based recommendations.
-- OCR improvements: swap or tune OCR provider (Tesseract, Google Cloud Vision) for higher parsing accuracy.
-- User accounts: add authentication and persist user preferences/purchase history for personalization.
-
-## Usage Examples
-
-- Natural questions: "Which pasta sauces are on discount?" or "What's a cheaper substitute for almond milk?"
-- Build lists: "Create a shopping list for vegetarian dinners this week" — produces grouped items by aisle.
-- Receipt parsing: Upload `receipt.png` to get parsed items, totals, and categorized spending.
-- Cross-sell: After selecting a product, ask "what else should I buy with this?" for bundled recommendations.
-
-## Deployment
-
-The app can be deployed to platforms that support Node.js. General checklist:
-
-- Ensure `GEMINI_API_KEY` (and any OCR/VECTOR_DB keys) are set in production environment variables.
-- Configure CORS and HTTPS.
-- Use managed DB/vector DB services for production readiness.
-
-Suggested targets:
-- Vercel (frontend + serverless API routes)
-- Heroku / Render / Fly / AWS / GCP for full-stack deployments
-
-## Security & Cost Considerations
-
-- Keep API keys out of source control. Use `.env` locally and secrets management in CI/CD.
-- LLM calls may incur cost — batch or cache repeated queries and minimize context size where possible.
-- Validate and sanitize user-provided content before using it in prompts to prevent prompt injection.
-
-## Troubleshooting
-
-- Authentication errors: verify `GEMINI_API_KEY` is valid and not rate-limited.
-- App won't start: ensure `npm install` completed and Node version is compatible.
-- OCR parsing errors: try different receipt images or switch OCR provider/configuration.
-
-## Contributing
-
-Contributions are welcome. Ideas:
-- Add unit/integration tests for parsing and API routes.
-- Add realistic product datasets and catalog importers.
-- Improve prompts and response handling for reliability and safety.
-
-## License
-
-MIT
+Let's create wonders together with the power and simplicity of crewAI.
